@@ -1,50 +1,42 @@
 package permutations
 
-// Strings.
-func Strings(a []string) chan []string {
-	c := make(chan []string)
-	go func() {
-		for indices := range N(len(a)) {
-			op := make([]string, len(a))
-			for i := 0; i < len(a); i++ {
-				op[i] = a[indices[i]]
-			}
-			c <- op
+// OfStrings returns all permutations of the input a.
+func OfStrings(a []string, f func(permutation []string) (stop bool)) {
+	N(len(a), func(permutation []int) (stop bool) {
+		op := make([]string, len(a))
+		for i := 0; i < len(permutation); i++ {
+			op[i] = a[permutation[i]]
 		}
-		close(c)
-	}()
-	return c
+		return f(op)
+	})
 }
 
-// N values.
-func N(n int) chan []int {
-	c := make(chan []int)
+// N returns all permutations of n values.
+func N(n int, f func(permutation []int) (stop bool)) {
 	values := make([]int, n)
 	for i := 0; i < n; i++ {
 		values[i] = i
 	}
-	go func() {
-		generate(n, values, c)
-		close(c)
-	}()
-	return c
+	generate(n, values, f)
 }
 
-func generate(k int, A []int, output chan []int) {
+func generate(k int, A []int, f func(permutation []int) (stop bool)) {
 	if k == 1 {
 		op := make([]int, len(A))
 		copy(op, A)
-		output <- op
+		if stop := f(op); stop {
+			return
+		}
 		return
 	}
-	generate(k-1, A, output)
+	generate(k-1, A, f)
 	for i := 0; i < k-1; i++ {
 		if k%2 == 0 {
 			A[i], A[k-1] = A[k-1], A[i]
 		} else {
 			A[0], A[k-1] = A[k-1], A[0]
 		}
-		generate(k-1, A, output)
+		generate(k-1, A, f)
 	}
 }
 

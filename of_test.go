@@ -41,9 +41,10 @@ func TestN(t *testing.T) {
 		tt := tt
 		t.Run(fmt.Sprint(tt.n), func(t *testing.T) {
 			var actual [][]int
-			for v := range N(tt.n) {
-				actual = append(actual, v)
-			}
+			N(tt.n, func(permutation []int) (stop bool) {
+				actual = append(actual, permutation)
+				return false
+			})
 			if diff := cmp.Diff(actual, tt.expected); diff != "" {
 				t.Errorf("(%d): expected %v, actual %v", tt.n, tt.expected, actual)
 				t.Errorf(diff)
@@ -86,9 +87,10 @@ func TestStrings(t *testing.T) {
 		tt := tt
 		t.Run(fmt.Sprint(tt.input), func(t *testing.T) {
 			var actual [][]string
-			for v := range Strings(tt.input) {
-				actual = append(actual, v)
-			}
+			OfStrings(tt.input, func(permutation []string) (stop bool) {
+				actual = append(actual, permutation)
+				return false
+			})
 			if diff := cmp.Diff(actual, tt.expected); diff != "" {
 				t.Errorf("(%v): expected %v, actual %v", tt.input, tt.expected, actual)
 				t.Errorf(diff)
