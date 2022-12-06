@@ -1,9 +1,9 @@
 package permutations
 
-// OfStrings returns all permutations of the input a.
-func OfStrings(a []string, f func(permutation []string) (stop bool)) {
+// Of returns all permutations of the input a.
+func Of[T any](a []T, f func(permutation []T) (stop bool)) {
 	N(len(a), func(permutation []int) (stop bool) {
-		op := make([]string, len(a))
+		op := make([]T, len(a))
 		for i := 0; i < len(permutation); i++ {
 			op[i] = a[permutation[i]]
 		}

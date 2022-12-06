@@ -87,7 +87,7 @@ func TestStrings(t *testing.T) {
 		tt := tt
 		t.Run(fmt.Sprint(tt.input), func(t *testing.T) {
 			var actual [][]string
-			OfStrings(tt.input, func(permutation []string) (stop bool) {
+			Of(tt.input, func(permutation []string) (stop bool) {
 				actual = append(actual, permutation)
 				return false
 			})
