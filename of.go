@@ -1,66 +1,61 @@
 package permutations
 
-// Of returns all permutations of the input a.
-func Of[T any](a []T, f func(permutation []T) (stop bool)) {
-	N(len(a), func(permutation []int) (stop bool) {
-		op := make([]T, len(a))
-		for i := 0; i < len(permutation); i++ {
-			op[i] = a[permutation[i]]
-		}
-		return f(op)
-	})
-}
+import "iter"
 
-// N returns all permutations of n values.
-func N(n int, f func(permutation []int) (stop bool)) {
-	values := make([]int, n)
-	for i := 0; i < n; i++ {
-		values[i] = i
-	}
-	generate(n, values, f)
-}
-
-func generate(k int, A []int, f func(permutation []int) (stop bool)) {
-	if k == 1 {
-		op := make([]int, len(A))
-		copy(op, A)
-		if stop := f(op); stop {
+// Of returns an iterator over all permutations of the input slice.
+// The yielded slice is reused between iterations; callers must copy it if needed.
+func Of[T any](a []T) iter.Seq[[]T] {
+	return func(yield func([]T) bool) {
+		n := len(a)
+		if n == 0 {
 			return
 		}
-		return
-	}
-	generate(k-1, A, f)
-	for i := 0; i < k-1; i++ {
-		if k%2 == 0 {
-			A[i], A[k-1] = A[k-1], A[i]
-		} else {
-			A[0], A[k-1] = A[k-1], A[0]
-		}
-		generate(k-1, A, f)
+		values := make([]T, n)
+		copy(values, a)
+		generate(values, yield)
 	}
 }
 
-/*
-https://en.wikipedia.org/wiki/Heap%27s_algorithm
+// N returns an iterator over all permutations of n values (0 to n-1).
+// The yielded slice is reused between iterations; callers must copy it if needed.
+func N(n int) iter.Seq[[]int] {
+	return func(yield func([]int) bool) {
+		if n == 0 {
+			return
+		}
+		values := make([]int, n)
+		for i := range n {
+			values[i] = i
+		}
+		generate(values, yield)
+	}
+}
 
-procedure generate(k : integer, A : array of any):
-    if k = 1 then
-        output(A)
-    else
-        // Generate permutations with kth unaltered
-        // Initially k == length(A)
-        generate(k - 1, A)
+// generate implements the iterative version of Heap's algorithm.
+func generate[T any](A []T, yield func([]T) bool) {
+	n := len(A)
+	c := make([]int, n)
 
-        // Generate permutations for kth swapped with each k-1 initial
-        for i := 0; i < k-1; i += 1 do
-            // Swap choice dependent on parity of k (even or odd)
-            if k is even then
-                swap(A[i], A[k-1]) // zero-indexed, the kth is at k-1
-            else
-                swap(A[0], A[k-1])
-            end if
-            generate(k - 1, A)
+	if !yield(A) {
+		return
+	}
 
-        end for
-    end if
-*/
+	i := 0
+	for i < n {
+		if c[i] < i {
+			if i%2 == 0 {
+				A[0], A[i] = A[i], A[0]
+			} else {
+				A[c[i]], A[i] = A[i], A[c[i]]
+			}
+			if !yield(A) {
+				return
+			}
+			c[i]++
+			i = 0
+		} else {
+			c[i] = 0
+			i++
+		}
+	}
+}
